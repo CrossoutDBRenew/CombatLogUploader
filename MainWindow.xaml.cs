@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using Forms = System.Windows.Forms;
 
 namespace CrossoutDBUploader;
 
@@ -20,6 +21,8 @@ public partial class MainWindow : Window
     private Config _config = new Config();
 
     private DispatcherTimer _timer;
+
+    private Forms.NotifyIcon _trayIcon;
 
     public MainWindow()
     {
@@ -40,10 +43,71 @@ public partial class MainWindow : Window
                 Log("Auto send enabled (startup)");
                 _ = SendLogsAsync(true);
             }
+
+            InitTray();
+
+            if (_config.AutoStartWithWindows && _config.AutoSend)
+            {
+                WindowState = WindowState.Minimized;
+                ShowInTaskbar = false;
+                Hide();
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Startup error:\n" + ex);
+            System.Windows.MessageBox.Show("Startup error:\n" + ex);
+        }
+    }
+
+    private void InitTray()
+    {
+        _trayIcon = new Forms.NotifyIcon();
+
+        var exePath = Path.Combine(AppContext.BaseDirectory, "app.ico");
+
+        if (File.Exists(exePath))
+            _trayIcon.Icon = new System.Drawing.Icon(exePath);
+
+        _trayIcon.Visible = true;
+        _trayIcon.Text = "CrossoutDB Uploader";
+
+        var menu = new Forms.ContextMenuStrip();
+
+        menu.Items.Add("Send now", null, async (_, __) => await SendLogsAsync(false));
+        menu.Items.Add("Open", null, (_, __) =>
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+        });
+        menu.Items.Add("Exit", null, (_, __) =>
+        {
+            _trayIcon.Visible = false;
+            _trayIcon.Dispose();
+            Forms.Application.Exit();
+            System.Windows.Application.Current.Shutdown();
+        });
+
+        _trayIcon.ContextMenuStrip = menu;
+
+        _trayIcon.DoubleClick += (_, __) =>
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+        };
+    }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        if (_trayIcon != null)
+        {
+            e.Cancel = true;
+            Hide();
+        }
+        else
+        {
+            base.OnClosing(e);
         }
     }
 
@@ -96,7 +160,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Config error:\n" + ex);
+            System.Windows.MessageBox.Show("Config error:\n" + ex);
 
             _config = new Config
             {
@@ -322,6 +386,12 @@ public partial class MainWindow : Window
                         sent.Add(folderName);
                         SaveSent(sent);
                         Log($"Uploaded {folderName}");
+                        _trayIcon?.ShowBalloonTip(
+                            3000,
+                            "CrossoutDB",
+                            $"{folderName} uploaded",
+                            Forms.ToolTipIcon.Info
+                        );
                     }
                     else
                     {
