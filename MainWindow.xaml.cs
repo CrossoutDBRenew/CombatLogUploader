@@ -5,6 +5,9 @@ using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
+using Application = System.Windows.Application;
+using System.Diagnostics;
+using System.Drawing;
 
 namespace CrossoutDBUploader;
 
@@ -22,7 +25,7 @@ public partial class MainWindow : Window
 
     private DispatcherTimer _timer;
 
-    private Forms.NotifyIcon _trayIcon;
+    private NotifyIcon? _trayIcon;
 
     public MainWindow()
     {
@@ -61,41 +64,25 @@ public partial class MainWindow : Window
 
     private void InitTray()
     {
-        _trayIcon = new Forms.NotifyIcon();
+        _trayIcon = new NotifyIcon();
 
-        var exePath = Path.Combine(AppContext.BaseDirectory, "app.ico");
-
-        if (File.Exists(exePath))
-            _trayIcon.Icon = new System.Drawing.Icon(exePath);
+        var exePath = Process.GetCurrentProcess().MainModule!.FileName!;
+        _trayIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(exePath) ?? SystemIcons.Application;
 
         _trayIcon.Visible = true;
         _trayIcon.Text = "CrossoutDB Uploader";
 
-        var menu = new Forms.ContextMenuStrip();
+        _trayIcon.DoubleClick += (s, e) =>
+        {
+            ShowWindow();
+        };
 
-        menu.Items.Add("Send now", null, async (_, __) => await SendLogsAsync(false));
-        menu.Items.Add("Open", null, (_, __) =>
-        {
-            Show();
-            WindowState = WindowState.Normal;
-            Activate();
-        });
-        menu.Items.Add("Exit", null, (_, __) =>
-        {
-            _trayIcon.Visible = false;
-            _trayIcon.Dispose();
-            Forms.Application.Exit();
-            System.Windows.Application.Current.Shutdown();
-        });
+        var menu = new ContextMenuStrip();
+        menu.Items.Add("Open", null, (s, e) => ShowWindow());
+        menu.Items.Add("Send now", null, async (s, e) => await SendLogsAsync(false));
+        menu.Items.Add("Exit", null, (s, e) => ExitApp());
 
         _trayIcon.ContextMenuStrip = menu;
-
-        _trayIcon.DoubleClick += (_, __) =>
-        {
-            Show();
-            WindowState = WindowState.Normal;
-            Activate();
-        };
     }
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
@@ -105,10 +92,22 @@ public partial class MainWindow : Window
             e.Cancel = true;
             Hide();
         }
-        else
-        {
-            base.OnClosing(e);
-        }
+        base.OnClosing(e);
+    }
+
+    private void ExitApp()
+    {
+        _trayIcon!.Visible = false;
+        _trayIcon.Dispose();
+        System.Windows.Forms.Application.Exit();
+        Application.Current.Shutdown();
+    }
+
+    private void ShowWindow()
+    {
+        Show();
+        WindowState = WindowState.Normal;
+        Activate();
     }
 
     // ================= LOG UI =================
