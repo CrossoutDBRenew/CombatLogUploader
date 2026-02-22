@@ -118,12 +118,14 @@ public partial class MainWindow : Window
                 return;
             }
 
+            var exePath = Path.Combine(
+                AppContext.BaseDirectory,
+                "CrossoutDBUploader.exe"
+            );
+
             if (_config.AutoStartWithWindows)
             {
-                key.SetValue(
-                    "CrossoutDBUploader",
-                    System.Reflection.Assembly.GetExecutingAssembly().Location
-                );
+                key.SetValue("CrossoutDBUploader", exePath);
                 Log("Auto start enabled");
             }
             else
