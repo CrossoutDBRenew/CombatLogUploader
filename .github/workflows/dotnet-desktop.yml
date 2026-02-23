@@ -37,10 +37,10 @@ jobs:
 
     - name: Test
       if: ${{ env.TEST_PROJECT != '' }}
-      run: dotnet test ${{ env.TEST_PROJECT }} --configuration ${{ matrix.configuration }} --no-build
+      run: dotnet test ${{ env.TEST_PROJECT }} --configuration ${{ matrix.configuration }}
 
     - name: Publish
-      run: dotnet publish ${{ env.PROJECT }} -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} --no-build -o ./artifacts/publish
+      run: dotnet publish ${{ env.PROJECT }} -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} -o ./artifacts/publish
 
     - name: Upload published artifact
       uses: actions/upload-artifact@v4
