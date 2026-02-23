@@ -32,11 +32,11 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore/Build/Publish (single-file)
+        shell: pwsh
         run: |
           dotnet restore ${{ env.SOLUTION }}
           dotnet build ${{ env.SOLUTION }} -c ${{ matrix.configuration }} --no-restore
-          dotnet publish ${{ env.PROJECT }} -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} -o ./artifacts/publish \
-            -p:PublishSingleFile=true -p:SelfContained=true -p:PublishTrimmed=true --no-restore
+          dotnet publish ${{ env.PROJECT }} -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} -o ./artifacts/publish -p:PublishSingleFile=true -p:SelfContained=true -p:PublishTrimmed=true --no-restore
 
       - name: Find published exe
         id: find_exe
