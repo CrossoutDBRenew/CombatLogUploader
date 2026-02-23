@@ -14,7 +14,7 @@ jobs:
         runtime: [win-x64]
 
     env:
-      SOLUTION: CombatLogUploader.sln
+      SOLUTION: CrossoutDBUploader.sln
       PROJECT: CrossoutDBUploader.csproj
       TEST_PROJECT: ''
 
