@@ -13,6 +13,8 @@ namespace CrossoutDBUploader;
 
 public partial class MainWindow : Window
 {
+    private const string DefaultApiUrl = "https://crossoutdb.com/api/v1/logs/upload";
+
     private string AppDir => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "CrossoutDB"
@@ -128,8 +130,9 @@ public partial class MainWindow : Window
             {
                 _config = new Config
                 {
-                    ApiUrl = "https://crossoutdb.com/api/v1/logs/upload",
+                    ApiUrl = DefaultApiUrl,
                     ApiKey = "",
+                    LogFolder = GetDefaultLogRoot(),
                     AutoSend = false,
                     AutoStartWithWindows = false
                 };
@@ -146,11 +149,19 @@ public partial class MainWindow : Window
                 var json = File.ReadAllText(ConfigPath);
 
                 _config = string.IsNullOrWhiteSpace(json)
-                    ? new Config { ApiUrl = "https://crossoutdb.com/api/v1/logs/upload" }
-                    : JsonSerializer.Deserialize<Config>(json) ?? new Config { ApiUrl = "https://crossoutdb.com/api/v1/logs/upload" };
+                    ? new Config { ApiUrl = DefaultApiUrl, LogFolder = GetDefaultLogRoot() }
+                    : JsonSerializer.Deserialize<Config>(json) ?? new Config { ApiUrl = DefaultApiUrl, LogFolder = GetDefaultLogRoot() };
 
                 Log("Config loaded");
             }
+
+            if (string.IsNullOrWhiteSpace(_config.ApiUrl))
+                _config.ApiUrl = DefaultApiUrl;
+            if (string.IsNullOrWhiteSpace(_config.LogFolder))
+                _config.LogFolder = GetDefaultLogRoot();
+
+            ApiUrlBox.Text = _config.ApiUrl ?? DefaultApiUrl;
+            LogFolderBox.Text = _config.LogFolder ?? GetDefaultLogRoot();
 
             ShowMaskedApiKey(_config.ApiKey ?? "");
 
@@ -163,8 +174,12 @@ public partial class MainWindow : Window
 
             _config = new Config
             {
-                ApiUrl = "https://crossoutdb.com/api/v1/logs/upload"
+                ApiUrl = DefaultApiUrl,
+                LogFolder = GetDefaultLogRoot()
             };
+
+            ApiUrlBox.Text = _config.ApiUrl;
+            LogFolderBox.Text = _config.LogFolder;
         }
     }
 
@@ -212,6 +227,12 @@ public partial class MainWindow : Window
             _config.ApiKey = entered;
         }
 
+        var apiUrl = ApiUrlBox.Text?.Trim();
+        _config.ApiUrl = string.IsNullOrWhiteSpace(apiUrl) ? DefaultApiUrl : apiUrl;
+
+        var logFolder = LogFolderBox.Text?.Trim();
+        _config.LogFolder = string.IsNullOrWhiteSpace(logFolder) ? GetDefaultLogRoot() : logFolder;
+
         _config.AutoSend = AutoSendCheckBox.IsChecked == true;
         _config.AutoStartWithWindows = AutoStartCheckBox.IsChecked == true;
 
@@ -221,6 +242,27 @@ public partial class MainWindow : Window
         ShowMaskedApiKey(_config.ApiKey);
 
         Log("Config saved");
+    }
+
+    private void BrowseLogFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            using var dialog = new Forms.FolderBrowserDialog
+            {
+                Description = "Select Crossout logs folder",
+                SelectedPath = Environment.ExpandEnvironmentVariables(LogFolderBox.Text ?? "")
+            };
+
+            if (dialog.ShowDialog() == Forms.DialogResult.OK)
+            {
+                LogFolderBox.Text = dialog.SelectedPath;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log("Browse error: " + ex.Message);
+        }
     }
 
     private void SaveConfig()
@@ -451,6 +493,15 @@ public partial class MainWindow : Window
 
     private string GetLogRoot()
     {
+        var configured = _config?.LogFolder?.Trim();
+        if (!string.IsNullOrWhiteSpace(configured))
+            return Environment.ExpandEnvironmentVariables(configured);
+
+        return GetDefaultLogRoot();
+    }
+
+    private static string GetDefaultLogRoot()
+    {
         return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             @"Targem\Crossout\logs"
@@ -464,6 +515,7 @@ public class Config
 {
     public string ApiKey { get; set; } = "";
     public string ApiUrl { get; set; } = "";
+    public string LogFolder { get; set; } = "";
     public bool AutoSend { get; set; } = false;
     public bool AutoStartWithWindows { get; set; } = false;
 }
