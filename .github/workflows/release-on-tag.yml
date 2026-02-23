@@ -34,9 +34,9 @@ jobs:
       - name: Restore/Build/Publish (single-file)
         shell: pwsh
         run: |
-          dotnet restore ${{ env.SOLUTION }}
+          dotnet restore ${{ env.SOLUTION }} -r win-x64
           dotnet build ${{ env.SOLUTION }} -c ${{ matrix.configuration }} --no-restore
-          dotnet publish ${{ env.PROJECT }} -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} -o ./artifacts/publish -p:PublishSingleFile=true -p:SelfContained=true -p:PublishTrimmed=false --no-restore
+          dotnet publish ${{ env.PROJECT }} -c ${{ matrix.configuration }} -r ${{ matrix.runtime }} -o ./artifacts/publish -p:PublishSingleFile=true -p:SelfContained=false -p:PublishTrimmed=false --no-restore
 
       - name: Find published exe
         id: find_exe
