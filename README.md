@@ -29,7 +29,7 @@ logs using your personal API key.
         - `AppData\Roaming\CrossoutDB\config.json`
         - `AppData\Roaming\CrossoutDB\sent.json`
     - The config contains:
-        - **ApiUrl**: defaults to `https://crossoutdb.com/api/v1/logs/upload`.
+        - **ApiUrl**: defaults to `https://crossoutdbtemp.quales.me/api/v1/logs/upload`.
         - **ApiKey**: your CrossoutDB API key.
         - **AutoSend**: whether to auto-upload every 60 seconds.
         - **AutoStartWithWindows**: whether to run at Windows startup.
@@ -58,7 +58,7 @@ logs using your personal API key.
 
 The main window contains:
 
-- **API URL field**: Defaults to `https://crossoutdb.com/api/v1/logs/upload` but can be changed if needed.
+- **API URL field**: Defaults to `https://crossoutdbtemp.quales.me/api/v1/logs/upload` but can be changed if needed.
 - **Log folder field**: Shows the Crossout log directory, which can be changed if your logs are in a different location.
 - **API Key field**: Enter your CrossoutDB API key. The value is masked in the app after saving.
 - **Save button**: Saves the API key and options to `config.json` and updates auto-start.

@@ -13,7 +13,7 @@ namespace CrossoutDBUploader;
 
 public partial class MainWindow : Window
 {
-    private const string DefaultApiUrl = "https://crossoutdb.com/api/v1/logs/upload";
+    private const string DefaultApiUrl = "https://crossoutdbtemp.quales.me/api/v1/logs/upload";
 
     private string AppDir => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
